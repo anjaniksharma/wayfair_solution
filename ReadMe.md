@@ -43,8 +43,8 @@ In order to build a production grade inference server into the container, we use
 
 ## Environment variables
 
-When you create an inference server, you can control some of Gunicorn's options via environment variables. These
-can be supplied as part of the CreateModel API call.
+When you create an inference server, you can control some of Gunicorn's options via environment variables. 
+
 
     Parameter                Environment Variable              Default Value
     ---------                --------------------              -------------
