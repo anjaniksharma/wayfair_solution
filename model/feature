@@ -13,7 +13,7 @@ prefix = '/opt/ml/'
 input_path = prefix + 'data'
 output_path = os.path.join(prefix, 'results')
 if not os.path.exists(output_path):
-    os.makdir(output_path)
+    os.mkdir(output_path)
 
 def feature():
     print('Starting the feature engineering.')
