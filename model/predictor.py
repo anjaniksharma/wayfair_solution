@@ -127,3 +127,4 @@ def transformation():
 
     predictions = ModelService.predict(tuple(data.values[0]))
     return flask.Response(response=json.dumps(predictions), status=200, mimetype="text/plain")
+
