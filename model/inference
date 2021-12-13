@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+import requests
+import pandas as pd
+
+prefix = '/opt/ml/'
+result_path = prefix + 'results/results.json'
+input_path = prefix + 'data/orders.csv'
+
+
+
+order_df = pd.read_csv(input_path)
+
+columns = ['order_id','customer_id','sku_code','zip_code']
+
+with open(result_path, 'w') as f:
+    for items in iter(order_df[columns].values):
+        payload = dict(zip(columns,items))
+        res = requests.post("http://serve:8081/invocations",json=payload, headers={"Content-Type": "text/json"})
+        f.write(res.text+'\n')

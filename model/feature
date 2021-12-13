@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import os
+import sys
+import traceback
+from datetime import datetime
+import pandas as pd
+
+
+prefix = '/opt/ml/'
+input_path = prefix + 'data'
+output_path = os.path.join(prefix, 'results')
+
+
+def feature():
+    print('Starting the feature engineering.')
+    
+    try:
+        print("Inside the try")
+        dateparse = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+        payments_df = pd.read_csv(input_path+'/payments.csv', date_parser=dateparse, parse_dates=['timestamp'])
+        zip_codes_df = pd.read_csv(input_path+'/zip_codes.csv', date_parser=dateparse, parse_dates=['available_from'])
+        orders_df = pd.read_csv(input_path+'/orders.csv', date_parser=dateparse, parse_dates=['timestamp'])
+        inventory_df = pd.read_csv(input_path+'/inventory.csv', date_parser=dateparse, parse_dates=['timestamp'])
+
+        orders_zip_df_merge =orders_df.merge(zip_codes_df,how='left',on='zip_code')
+        orders_zip_df_merge['available_from'].fillna(value='1999-01-01 00:00:00',inplace=True)
+        orders_zip_df_merge['zip_code_available'] = orders_zip_df_merge[['timestamp','available_from']]. \
+apply(lambda x: x['timestamp'] >= x['available_from'],axis=1)
+        orders_zip_df_merge['order_hour_of_day'] = orders_zip_df_merge['timestamp']. \
+apply(lambda x: x.hour)
+
+        orders_zip_inventory_merge = orders_zip_df_merge.merge(inventory_df, how='left', on=['sku_code','timestamp'])
+
+        orders_zip_inventory_payment_merge = orders_zip_inventory_merge.\
+merge(payments_df,how='left',on=['order_id','customer_id','timestamp'])
+
+        orders_zip_inventory_payment_merge.to_csv(output_path+'/features.csv',header=True, index=False)
+
+    except Exception as e:
+        
+        trc = traceback.format_exc()
+        with open(os.path.join(prefix, 'results/error.log'), 'w') as s:
+            s.write('Exception feature engineering: ' + str(e) + '\n' + trc)
+        
+        print('Exception during feature engineering: ' + str(e) + '\n' + trc, file=sys.stderr)
+        
+        sys.exit(255)
+
+if __name__ == '__main__':
+    feature()
+
+    # A zero exit code causes the job to be marked a Succeeded.
+    sys.exit(0)

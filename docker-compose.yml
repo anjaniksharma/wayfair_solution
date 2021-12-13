@@ -1,0 +1,26 @@
+version: "3.9"  
+services:
+  feature:
+    build: .
+    volumes:
+      - .:/opt/ml
+    command:  python feature
+  serve:
+    build: .
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/opt/ml
+    depends_on:
+      - feature
+    command: python serve -d
+  inference:
+    build: .
+    volumes:
+      - .:/opt/ml
+    command:  python inference -d
+    depends_on:
+      - serve
+
+
+    
